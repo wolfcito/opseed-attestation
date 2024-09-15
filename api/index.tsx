@@ -3,6 +3,7 @@ import { serveStatic } from 'frog/serve-static'
 
 import { handle } from 'frog/vercel'
 import { Button, Frog, TextInput } from 'frog'
+import { ethers } from 'ethers'
 
 export const app = new Frog<{ State: State }>({
   assetsPath: '/',
@@ -19,7 +20,7 @@ app.frame('/', async (c) => {
 
   const currentAddress = deriveState((previousState) => {
     if (inputText) {
-      previousState.currentAddress = inputText
+      previousState.currentAddress = toChecksumAddress(inputText.toLowerCase())
     }
   })
 
@@ -105,7 +106,7 @@ app.frame('/', async (c) => {
       currentAttestation !== null && currentAttestation !== undefined ? (
         <GoodFrame fullInfo={currentAttestation} />
       ) : (
-        <BadFrame />
+        <BadFrame address={address} />
       ),
     intents: [
       <TextInput placeholder="Enter address... 0x1234..." />,
@@ -240,7 +241,7 @@ export function GoodFrame({ fullInfo }: GoodFrameProps) {
   )
 }
 
-export function BadFrame() {
+export function BadFrame({ address }: { readonly address: string }) {
   return (
     <div
       style={{
@@ -270,7 +271,7 @@ export function BadFrame() {
       <div
         style={{
           fontSize: '48px',
-          fontWeight: 'bold',
+          fontWeight: '600',
           margin: '32px 52px 0px 52px',
         }}
       >
@@ -283,12 +284,49 @@ export function BadFrame() {
           margin: '32px 52px 0px 52px',
         }}
       >
-        You don't have any attestations yet.
+        Discover the attestations you obtained in SEED Latam and Optimism
+        Español!
+      </div>
+      {address !== null && address.length > 0 ? (
+        <div
+          style={{
+            fontSize: '30px',
+            color: '#374151',
+            margin: '32px 52px 0px 52px',
+          }}
+        >
+          {`${shortenAddress(address)} has no attestations.`}
+        </div>
+      ) : null}
+
+      <div
+        style={{
+          display: 'flex',
+          bottom: 0,
+          right: 0,
+          justifyContent: 'flex-end',
+          alignItems: 'flex-end',
+          fontSize: '32px',
+          margin: '100px 52px 0px 52px',
+          position: 'absolute',
+        }}
+      >
+        🐺 @wolfcito
       </div>
     </div>
   )
 }
 
+const toChecksumAddress = (address: string): string => {
+  return ethers.utils.getAddress(address.toLowerCase())
+}
+
+const shortenAddress = (address: string) => {
+  if (address.length <= 10) {
+    return address
+  }
+  return `${address.slice(0, 6)}...${address.slice(-4)}`
+}
 export const attestationMapper = (
   attestationData: Attestation[],
   state: State,
