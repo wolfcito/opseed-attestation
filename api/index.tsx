@@ -10,13 +10,20 @@ export const app = new Frog<{ State: State }>({
   title: 'OPTIMISM ESPAÑOL EVENTS',
   initialState: {
     count: 0,
+    currentAddress: '',
   },
 })
 
 app.frame('/', async (c) => {
   const { inputText, deriveState, buttonValue, frameData } = c
-  const address = inputText ?? frameData?.address ?? ''
-  console.log('c:', c)
+
+  const currentAddress = deriveState((previousState) => {
+    if (inputText) {
+      previousState.currentAddress = inputText
+    }
+  })
+
+  const address = currentAddress.currentAddress ?? frameData?.address ?? ''
 
   const getAttestations = async (address: string) => {
     // console.log('llamando a getAttestations', address)
@@ -361,6 +368,7 @@ export interface AttrProps {
 
 export type State = {
   count: number
+  currentAddress: string
 }
 
 export interface GoodFrameProps {
