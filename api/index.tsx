@@ -17,17 +17,34 @@ export const app = new Frog<{ State: State }>({
 
 app.frame('/', async (c) => {
   const { inputText, deriveState, buttonValue, frameData } = c
+  let INVALID_ADDRESS = ''
 
   const currentAddress = deriveState((previousState) => {
-    if (inputText) {
-      previousState.currentAddress = toChecksumAddress(inputText.toLowerCase())
+    try {
+      if (inputText && ethers.utils.isAddress(toChecksumAddress(inputText))) {
+        previousState.currentAddress = toChecksumAddress(inputText)
+      }
+    } catch (error) {
+      console.error('Invalid address')
+      INVALID_ADDRESS = 'Invalid address'
     }
   })
+
+  if (INVALID_ADDRESS === 'Invalid address') {
+    return c.res({
+      image: <BadFrame address={INVALID_ADDRESS} />,
+      intents: [
+        <TextInput placeholder="Enter address... 0x1234..." />,
+        <Button value="dec">{'<<'}</Button>,
+        <Button value="att">Attestation</Button>,
+        <Button value="inc">{'>>'}</Button>,
+      ],
+    })
+  }
 
   const address = currentAddress.currentAddress ?? frameData?.address ?? ''
 
   const getAttestations = async (address: string) => {
-    // console.log('llamando a getAttestations', address)
     const query = `
       query Attestations($where: AttestationWhereInput) {
         attestations(where: $where) {
@@ -79,7 +96,6 @@ app.frame('/', async (c) => {
   let currentAttestation
 
   const attestationData: Attestation[] = await getAttestations(address)
-  // console.log('attestationData', attestationData)
 
   const state = deriveState((previousState) => {
     if (
@@ -90,16 +106,11 @@ app.frame('/', async (c) => {
     } else if (buttonValue === 'dec' && previousState.count > 0) {
       previousState.count--
     }
-    // console.log('<<<<previousState>>>>', previousState)
   })
   const fullInfo = attestationMapper(attestationData, state)
-  // console.log('fullInfo', { fullInfo })
-  // fullInfo?.forEach((attestation) => console.log(attestation.attestations))
+
   currentAttestation =
     fullInfo && fullInfo?.length > 0 ? fullInfo[state.count] : null
-
-  // console.log('state', state)
-  // return
 
   return c.res({
     image:
@@ -113,7 +124,6 @@ app.frame('/', async (c) => {
       <Button value="dec">{'<<'}</Button>,
       <Button value="att">Attestation</Button>,
       <Button value="inc">{'>>'}</Button>,
-      // status === 'response' && <Button.Reset>Reset</Button.Reset>,
     ],
   })
 })
@@ -270,11 +280,23 @@ export function BadFrame({ address }: { readonly address: string }) {
 
       <div
         style={{
+          display: 'flex',
           fontSize: '48px',
           fontWeight: '600',
           margin: '32px 52px 0px 52px',
+          color: '#ff0000',
+          alignItems: 'center',
         }}
       >
+        <img
+          src="https://www.optimism.io/sparkle.svg"
+          alt="bgattestation"
+          style={{
+            width: '80px',
+            height: '80px',
+            objectFit: 'cover',
+          }}
+        />
         Stay Optimistic
       </div>
       <div
@@ -295,7 +317,9 @@ export function BadFrame({ address }: { readonly address: string }) {
             margin: '32px 52px 0px 52px',
           }}
         >
-          {`${shortenAddress(address)} has no attestations.`}
+          {`${
+            address.startsWith('0x') ? shortenAddress(address) : address
+          } has no attestations.`}
         </div>
       ) : null}
 
