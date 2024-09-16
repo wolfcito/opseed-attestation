@@ -115,7 +115,7 @@ app.frame('/', async (c) => {
   return c.res({
     image:
       currentAttestation !== null && currentAttestation !== undefined ? (
-        <GoodFrame fullInfo={currentAttestation} />
+        <GoodFrame fullInfo={currentAttestation} address={address} />
       ) : (
         <BadFrame address={address} />
       ),
@@ -136,8 +136,9 @@ devtools(app, isProduction ? { assetsPath: '/.frog' } : { serveStatic })
 export const GET = handle(app)
 export const POST = handle(app)
 
-export function GoodFrame({ fullInfo }: GoodFrameProps) {
+export function GoodFrame({ fullInfo, address }: GoodFrameProps) {
   const cardData = cardDataMapper(fullInfo.attestations)
+
   return (
     <div
       style={{
@@ -175,24 +176,23 @@ export function GoodFrame({ fullInfo }: GoodFrameProps) {
             fontSize: '24px',
             fontWeight: 'bold',
             borderRadius: '20px',
-            background: '#ff000050',
+            background: '#39fdcc50',
             padding: '5px 10px',
-            color: '#ff0000',
+            color: '#00693f',
           }}
         >
-          {cardData.eventType}
+          {cardData.location}
         </div>
         <div
           style={{
             fontSize: '24px',
             padding: '5px 10px',
             borderRadius: '20px',
-            border: '2px solid #4c63b6',
             background: '#a9baebad',
             color: '#4c63b6',
           }}
         >
-          Attestation
+          {`Attestation ${shortenAddress(address)}`}
         </div>
       </div>
 
@@ -251,7 +251,7 @@ export function GoodFrame({ fullInfo }: GoodFrameProps) {
   )
 }
 
-export function BadFrame({ address }: { readonly address: string }) {
+export function BadFrame({ address }: BadFrameProps) {
   return (
     <div
       style={{
@@ -396,7 +396,7 @@ export const cardDataMapper = (attestations: any) => {
     location: attestations.find((attr: AttrProps) => attr.name === 'Location')
       ?.value?.value,
   }
-  // console.log('cardData:', cardData)
+
   return cardData
 }
 
@@ -435,4 +435,9 @@ export type State = {
 
 export interface GoodFrameProps {
   readonly fullInfo: any
+  readonly address: string
+}
+
+export interface BadFrameProps {
+  readonly address: string
 }
