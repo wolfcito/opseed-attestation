@@ -306,8 +306,26 @@ export function BadFrame({ address }: BadFrameProps) {
           margin: '32px 52px 0px 52px',
         }}
       >
-        Discover the attestations you obtained in SEED Latam and Optimism
-        Español!
+        Discover the attestations you obtained
+      </div>
+      <div
+        style={{
+          fontSize: '32px',
+          color: '#374151',
+          margin: '0px 52px 0px 52px',
+        }}
+      >
+        in
+      </div>
+      <div
+        style={{
+          fontWeight: '900',
+          fontSize: '34px',
+          color: '#000000',
+          margin: '0px 52px 0px 52px',
+        }}
+      >
+        SEED Latam and Optimism Español!
       </div>
       {address !== null && address.length > 0 ? (
         <div
@@ -326,7 +344,7 @@ export function BadFrame({ address }: BadFrameProps) {
       <div
         style={{
           display: 'flex',
-          bottom: 0,
+          bottom: 15,
           right: 0,
           justifyContent: 'flex-end',
           alignItems: 'flex-end',
